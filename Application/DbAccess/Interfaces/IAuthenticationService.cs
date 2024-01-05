@@ -10,6 +10,6 @@ namespace Application.DbAccess.Interfaces
 {
     public interface IAuthenticationService
     {
-        Task<string> MakeLogin(LoginRequest login);
+        Task<ApiResponse> MakeLogin(LoginRequest login);
     }
 }

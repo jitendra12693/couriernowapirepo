@@ -5,10 +5,12 @@ using InTimeCourier.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,7 +26,7 @@ namespace Application.DbAccess.Repository
             _applicationDBContext = applicationDBContext;
             _configuration = configuration;
         }
-        public async Task<string> MakeLogin(LoginRequest login)
+        public async Task<ApiResponse> MakeLogin(LoginRequest login)
         {
             try
             {
@@ -33,7 +35,7 @@ namespace Application.DbAccess.Repository
 
                 if (user is null)
                 {
-                    throw new ArgumentException($"Unable to authenticate user {login.Username}");
+                    return new ApiResponse() { Status = "Failed", StatusCode = (int)HttpStatusCode.NotFound, Message = $"Unable to authenticate user {login.Username}" };
                 }
 
                 var authClaims = new List<Claim>
@@ -46,11 +48,11 @@ namespace Application.DbAccess.Repository
                 };
                 var token = GetToken(authClaims);
 
-                return new JwtSecurityTokenHandler().WriteToken(token);
+                return new ApiResponse() { Data =new JwtSecurityTokenHandler().WriteToken(token),Status="Success",StatusCode=(int)HttpStatusCode.OK,Message="User validated successfully." };
             }
             catch (Exception ex)
             {
-                return ex.Message;
+                return new ApiResponse() {  Status = "Failed", StatusCode = (int)HttpStatusCode.BadRequest, Message =  ex.Message};
             }
 
         }
