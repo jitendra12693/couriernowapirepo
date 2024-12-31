@@ -1,6 +1,7 @@
 ﻿using Application.Common.Interfaces;
 using Application.DbAccess.Interfaces;
 using Domain.Common;
+using Domain.Master;
 using InTimeCourier.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -40,10 +41,11 @@ namespace Application.DbAccess.Repository
 
                 var authClaims = new List<Claim>
                 {
-                        new(ClaimTypes.Name, user.FirstName+" "+user.LastName),
-                        new(ClaimTypes.Email, user.EmailId),
-                        new(ClaimTypes.Role, user.RoleId.ToString()),
-                        new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                        new("Name", user.FirstName+" "+user.LastName),
+                        new("Email", user.EmailId),
+                        new("Role", user.RoleId.ToString()),
+                        new("NameIdentifier", user.Id.ToString()),
+                        new("MobileNo", user.MobileNo),
                         new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
                 var token = GetToken(authClaims);
@@ -52,11 +54,74 @@ namespace Application.DbAccess.Repository
             }
             catch (Exception ex)
             {
-                return new ApiResponse() {  Status = "Failed", StatusCode = (int)HttpStatusCode.BadRequest, Message =  ex.Message};
+                throw;
+                //return new ApiResponse() {  Status = "Failed", StatusCode = (int)HttpStatusCode.BadRequest, Message =  ex.Message};
             }
 
         }
 
+        public async Task<ApiResponse> RegisterUser(RegisterRequest register)
+        {
+            try
+            {
+                var user = new UserMaster()
+                {
+                    FirstName = register.FirstName,
+                    LastName = register.LastName,
+                    EmailId = register.EmailId,
+                    MobileNo = register.MobileNo,
+                    Password = register.Password,
+                    Address = register.Address,
+                    City = register.City,
+                    StateId = register.StateId,
+                    CountryId = register.CountryId,
+                    Pincode = register.Pincode,
+                    RoleId = 1,
+                    IsActive = true,
+                    CreatedBy = 1,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                _applicationDBContext.UserMasters.Add(user);
+                var result = await _applicationDBContext.SaveChangesAsync();
+                return new ApiResponse() { Data = result, Status = "Success", StatusCode = (int)HttpStatusCode.OK, Message = "New user registered successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse() { Status = "Failed", StatusCode = (int)HttpStatusCode.BadRequest, Message = ex.Message };
+            }
+            
+        }
+
+        public async Task<ApiResponse> GetAllUser()
+        {
+            try
+            {
+                var userList = await _applicationDBContext.UserMasters.Where(x=>x.IsActive).OrderBy(x => x.Id).Select(x => new
+                {
+                    FirstName=x.FirstName,
+                    StateCode=x.StateMaster.StateCode,
+                    StateName=x.StateMaster.StateName,
+                    CountryName=x.CountryMaster.CountryName,
+                    LastName=x.LastName,
+                    EmailId=x.EmailId,
+                    MobileNo=x.MobileNo,
+                    City=x.City,
+                    Pincode=x.Pincode,
+                    Address=x.Address,
+                    RoleName=x.RoleMaster.RoleName,
+                    RoleId=x.RoleId,
+                    CountryId=x.CountryId,
+                    StateId=x.StateId,
+                    UserId=x.Id
+                }).ToListAsync();
+                return new ApiResponse() { StatusCode = (int)HttpStatusCode.OK,Status="Success",Data= userList,Message="All records fetched successfully"};
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse() { Status = "Failed", StatusCode = (int)HttpStatusCode.BadRequest, Message = ex.Message };
+            }
+        }
         private JwtSecurityToken GetToken(IEnumerable<Claim> authClaims)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));

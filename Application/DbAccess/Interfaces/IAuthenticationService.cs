@@ -11,5 +11,8 @@ namespace Application.DbAccess.Interfaces
     public interface IAuthenticationService
     {
         Task<ApiResponse> MakeLogin(LoginRequest login);
+
+        Task<ApiResponse> RegisterUser(RegisterRequest login);
+        Task<ApiResponse> GetAllUser();
     }
 }

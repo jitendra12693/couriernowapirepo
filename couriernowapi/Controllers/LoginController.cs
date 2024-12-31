@@ -1,11 +1,7 @@
 ﻿using Application.DbAccess.Interfaces;
 using Domain.Common;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 
 namespace couriernowapi.Controllers
 {
@@ -26,6 +22,29 @@ namespace couriernowapi.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var response = await _authenticationService.MakeLogin(request);
+
+            return Ok(response);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> register([FromBody] RegisterRequest register)
+        {
+            var response = await _authenticationService.RegisterUser(register);
+
+            return Ok(response);
+        }
+        [Authorize]
+        [HttpGet("userlist")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAllUser()
+        {
+            var response = await _authenticationService.GetAllUser();
 
             return Ok(response);
         }
