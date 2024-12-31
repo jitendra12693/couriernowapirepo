@@ -13,6 +13,10 @@ namespace Infrastructure.Persistence
     public class ApplicationDBContext : DbContext, IApplicationDBContext
     {
         #region Ctor
+        public ApplicationDBContext()
+        {
+                
+        }
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options)
          : base(options)
         {
@@ -41,11 +45,21 @@ namespace Infrastructure.Persistence
         public DbSet<StateMaster> StateMasters { get; set; }
         public DbSet<StatusMaster> StatusMasters { get; set; }
         public DbSet<UserMaster> UserMasters { get; set; }
+        public DbSet<ApplicationLog> ApplicationLogs { get; set; }
         #endregion
         #region Methods
         public Task<int> SaveChangesAsync()
         {
             return base.SaveChangesAsync();
+        }
+
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    optionsBuilder.UseSqlServer("ApplicationDBContext");
+        //}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
         }
         #endregion
     }

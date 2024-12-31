@@ -17,7 +17,7 @@ namespace Infrastructure
             IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDBContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("CourierNowDatabase"),
+                options.UseSqlServer(configuration.GetConnectionString("ApplicationDBContext"),
                 b => b.MigrationsAssembly(typeof(ApplicationDBContext).Assembly.FullName)), ServiceLifetime.Transient);
 
             services.AddScoped<IApplicationDBContext>(provider => provider.GetService<ApplicationDBContext>());
